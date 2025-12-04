@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 import com.backend.paymentsprocessing.dto.TransactionDTO;
 import com.backend.paymentsprocessing.entity.TransactionEntity;
-import com.backend.paymentsprocessing.pojo.InitiateTxnReq;
 import com.backend.paymentsprocessing.util.convert.idtoname.PaymentMethodEnumIdToNameConverter;
 import com.backend.paymentsprocessing.util.convert.idtoname.PaymentTypeEnumIdToNameConverter;
 import com.backend.paymentsprocessing.util.convert.idtoname.ProviderEnumIdToNameConverter;
@@ -18,7 +17,6 @@ import com.backend.paymentsprocessing.util.convert.nametoid.PaymentMethodEnumCon
 import com.backend.paymentsprocessing.util.convert.nametoid.PaymentTypeEnumConverter;
 import com.backend.paymentsprocessing.util.convert.nametoid.ProviderEnumConverter;
 import com.backend.paymentsprocessing.util.convert.nametoid.TransactionStatusEnumConverter;
-import com.backend.stripeprovider.CreatePaymentRequest;
 
 @Configuration
 public class AppConfig {

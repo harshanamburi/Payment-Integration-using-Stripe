@@ -22,71 +22,98 @@ public class TransactionDaoImpl implements TransactionDao {
 	private final NamedParameterJdbcTemplate jdbcTemplate;
 
 	private static final String INSERT_SQL = """
-			    INSERT INTO payments.Transaction (
-			        userId,
-			        paymentMethodId,
-			        providerId,
-			        paymentTypeId,
-			        txnStatusId,
-			        amount,
-			        currency,
-			        merchantTransactionReference,
-			        txnReference
-			  )
-			    VALUES (
-			    :userId,
-			    :paymentMethodId,
-			    :providerId,
-			    :paymentTypeId,
-			    :txnStatusId,
-			    :amount,
-			    :currency,
-			    :merchantTransactionReference,
-			    :txnReference)
+			INSERT INTO payments.`Transaction` (
+			    userId, paymentMethodId, providerId, paymentTypeId, txnStatusId,
+			    amount, currency, merchantTransactionReference, txnReference
+			) VALUES (
+			    :userId, :paymentMethodId, :providerId, :paymentTypeId, :txnStatusId,
+			    :amount, :currency, :merchantTransactionReference, :txnReference
+			)
 			""";
 
-	@Override
-	public Integer insertTranscation(TransactionEntity txn) {
-
+	public Integer insertTransaction(TransactionEntity txn) {
+		log.info("Inserting transaction: {}", txn);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
+
 		BeanPropertySqlParameterSource params = new BeanPropertySqlParameterSource(txn);
-		jdbcTemplate.update(INSERT_SQL, params, keyHolder, new String[] { "id" });
+
+		jdbcTemplate.update(INSERT_SQL, params, keyHolder, new String[]{"id"});
+		// set the generated id back to the entity
 		txn.setId(keyHolder.getKey().intValue());
+
+		log.info("Inserted transaction with generated id: {}", txn.getId());
 		return txn.getId();
 	}
 
 	@Override
 	public TransactionEntity getTransactionByTxnReference(String txnReference) {
+		log.info("Fetching transaction with txnReference: {}", txnReference);
 
-		log.info("Fetching transaction with TxnReference:{}", txnReference);
-
-		String sql = "SELECT * FROM transaction WHERE txnreference = :txnReference";
+		String sql = "SELECT * FROM payments.`Transaction` "
+				+ "WHERE txnReference = :txnReference";
 
 		MapSqlParameterSource params = new MapSqlParameterSource();
 		params.addValue("txnReference", txnReference);
 
-		TransactionEntity transactionEntity = jdbcTemplate.queryForObject(sql, params,
+		TransactionEntity txnEntity = jdbcTemplate.queryForObject(
+				sql,
+				params,
 				new BeanPropertyRowMapper<>(TransactionEntity.class));
-		log.info("Fetched transaction Entity:{}", transactionEntity);
-		return transactionEntity;
 
+		log.info("Fetched transaction entity: {}", txnEntity);
+		return txnEntity;
 	}
 
 	@Override
-	public Integer updateTransactionStatusDetailsByTxnReference(TransactionEntity txn) {
-	    log.info("Updating transaction status and provider reference for txnReference: {}", txn.getTxnReference());
+	public Integer updateTransactionStatusDetailsByTxnReference(
+			TransactionEntity txn) {
+		log.info("Updating transaction status details for txn: {}", txn);
 
-	    String sql = "UPDATE payments.Transaction " +
-	                 "SET txnStatusId = :txnStatusId, providerReference = :providerReference " +
-	                 "WHERE txnReference = :txnReference";
+		String sql = "UPDATE payments.`Transaction` " +
+				"SET txnStatusId = :txnStatusId, " +
+				"    providerReference = :providerReference, " +
+				"    errorCode = :errorCode, " +
+				"    errorMessage = :errorMessage " +
+				"WHERE txnReference = :txnReference";
 
-	    MapSqlParameterSource params = new MapSqlParameterSource();
-	    params.addValue("txnStatusId", txn.getTxnStatusId());
-	    params.addValue("providerReference", txn.getProviderReference());
-	    params.addValue("txnReference", txn.getTxnReference());
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("txnStatusId", txn.getTxnStatusId());
+		params.addValue("providerReference", txn.getProviderReference());
+		params.addValue("txnReference", txn.getTxnReference());
+		
+		params.addValue("errorCode", txn.getErrorCode());
+		params.addValue("errorMessage", txn.getErrorMessage());
 
-	    log.info("Executing SQL: {} with params: {}", sql, params.getValues());
-
-	    return  jdbcTemplate.update(sql, params);
+		return jdbcTemplate.update(sql, params); // returns number of rows updated
 	}
+
+	@Override
+	public TransactionEntity getTransactionByProviderReference(
+			String providerReference, int providerId) {
+		log.info("Fetching transaction with providerReference: {} and providerId: {}", 
+				providerReference, providerId);
+
+		String sql = "SELECT * FROM payments.`Transaction` "
+				+ "WHERE providerReference = :providerReference "
+				+ "AND providerId = :providerId";
+
+		MapSqlParameterSource params = new MapSqlParameterSource();
+		params.addValue("providerReference", providerReference);
+		params.addValue("providerId", providerId);
+
+		TransactionEntity txnEntity = jdbcTemplate.queryForObject(
+				sql,
+				params,
+				new BeanPropertyRowMapper<>(TransactionEntity.class));
+
+		log.info("Fetched transaction entity: {}", txnEntity);
+		return txnEntity;
+	}
+
+	@Override
+	public Integer insertTranscation(TransactionEntity txn) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

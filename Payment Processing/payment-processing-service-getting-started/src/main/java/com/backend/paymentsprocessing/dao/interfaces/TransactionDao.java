@@ -9,4 +9,7 @@ public interface TransactionDao {
 	public TransactionEntity getTransactionByTxnReference(String txnReference);
 	
 	public Integer updateTransactionStatusDetailsByTxnReference(TransactionEntity txn);
+
+	public TransactionEntity getTransactionByProviderReference(String providerReference, int id);
+
 }
